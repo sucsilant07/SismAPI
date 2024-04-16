@@ -10,6 +10,9 @@ namespace :obtener_datos_sismologicos do
       data = JSON.parse(response.body)
       puts "Datos obtenidos correctamente:"
 
+      # Eliminar todos los registros existentes antes de crear los nuevos
+      EarthquakeEvent.destroy_all
+
       # Procesamiento y persistencia de los datos
       data['features'].each do |feature|
         event_params = {

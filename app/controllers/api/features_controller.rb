@@ -17,7 +17,7 @@ module Api
 
       # Paginar los resultados si se proporciona page y per_page
       page = (params[:page] || 1).to_i.positive? ? (params[:page] || 1).to_i : 1
-      per_page = (params[:per_page].to_i.positive? ? params[:per_page].to_i : 10)
+      per_page = (params[:per_page].to_i.positive? ? params[:per_page].to_i : 1000)
       features = features.paginate(page: page, per_page: per_page)
 
       features

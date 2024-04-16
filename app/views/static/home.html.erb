@@ -3,10 +3,314 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Rails App Home</title>
+  <title>Consulta de Datos Sismológicos</title>
+  <style>
+      /* Estilo para centrar el contenido de todas las celdas */
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+
+      th, td {
+          text-align: center;
+          padding: 8px;
+          border: 1px solid #ddd;
+      }
+
+      tr:nth-child(even) {
+          background-color: #f2f2f2;
+      }
+
+      tr:hover {
+          background-color: #ddd;
+      }
+
+      /* Agregar margen inferior al contenedor de la tabla */
+      #tabla-container {
+          margin-top: 20px;
+      }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Rails App!</h1>
-  <p>This is the home page.</p>
+<h1>Consulta de Datos Sismológicos</h1>
+
+<!-- Botones -->
+<button id="btn-solicitar" onclick="solicitarDatos()">Solicitar</button>
+<button id="btn-comentar" onclick="comentar()" disabled>Comentar</button>
+
+<!-- Contenedor de la tabla -->
+<div id="tabla-container" style="display: none;">
+  <table id="tabla">
+    <thead>
+    <tr>
+      <th>Check</th>
+      <th>ID</th>
+      <th>Magnitud</th>
+      <th>Lugar</th>
+      <th>Fecha y Hora</th>
+      <th>Tsunami</th>
+      <th>Tipo de Magnitud</th>
+      <th>Título</th>
+      <th>Enlace Externo</th>
+    </tr>
+    </thead>
+    <tbody id="tabla-body">
+    </tbody>
+  </table>
+</div>
+
+<!-- Botones de paginación -->
+<div id="pagination-container" style="text-align: center; margin-top: 10px;">
+  <button id="btn-anterior" onclick="paginaAnterior()" disabled>&lt;</button>
+  <button id="btn-siguiente" onclick="paginaSiguiente()" disabled>&gt;</button>
+</div>
+
+<!-- Contenedor de comentarios -->
+<div id="comentarios-container" style="display: none; margin-top: 20px;position: relative;left: 28vw;width: 50vw;">
+  <h2>Comentarios</h2>
+  <div style="display: flex;justify-content: center;height: 20vh;"><div id="comentarios"></div></div>
+  <div style="margin-top: 10px;text-align: center;">
+    <input type="text" id="comentario-input" placeholder="Escribe tu comentario" style="width: 30vw;">
+    <button onclick="enviarComentario()">Enviar</button>
+  </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    const resultsPerPage = 10;
+
+    function solicitarDatos() {
+        fetch('/api/features', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('La respuesta de la solicitud no fue exitosa');
+              }
+              return response.json();
+          })
+          .then(data => {
+              console.log('Respuesta exitosa:', data);
+              mostrarDatos(data);
+          })
+          .catch(error => console.error('Error:', error));
+    }
+
+    function mostrarDatos(data) {
+        const tablaBody = document.getElementById('tabla-body');
+        tablaBody.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
+
+        const startIndex = (currentPage - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        const featuresToShow = data.slice(startIndex, endIndex);
+
+        // Iterar sobre cada objeto en el array de datos
+        featuresToShow.forEach(feature => {
+            const row = document.createElement('tr');
+
+            // Crear la celda para el checkpoint
+            const checkboxCell = document.createElement('td');
+            checkboxCell.classList.add('checkbox-container'); // Agregar la clase de estilo
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.addEventListener('change', function() {
+                deshabilitarOtrosCheckboxes(checkbox);
+                actualizarEstadoBotonComentar();
+            });
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+
+            // Crear celdas para cada propiedad y asignar su valor correspondiente
+            const idCell = document.createElement('td');
+            idCell.textContent = feature.id;
+            row.appendChild(idCell);
+
+            const attributes = feature.attributes;
+            const magnitudeCell = document.createElement('td');
+            magnitudeCell.textContent = attributes.magnitude;
+            row.appendChild(magnitudeCell);
+
+            const placeCell = document.createElement('td');
+            placeCell.textContent = attributes.place;
+            row.appendChild(placeCell);
+
+            const timeCell = document.createElement('td');
+            timeCell.textContent = attributes.time;
+            row.appendChild(timeCell);
+
+            const tsunamiCell = document.createElement('td');
+            tsunamiCell.textContent = attributes.tsunami;
+            row.appendChild(tsunamiCell);
+
+            const magTypeCell = document.createElement('td');
+            magTypeCell.textContent = attributes.mag_type;
+            row.appendChild(magTypeCell);
+
+            const titleCell = document.createElement('td');
+            titleCell.textContent = attributes.title;
+            row.appendChild(titleCell);
+
+            const externalUrlCell = document.createElement('td');
+            const externalUrlLink = document.createElement('a');
+            externalUrlLink.href = feature.links && feature.links.external_url;
+            externalUrlLink.textContent = 'Enlace Externo';
+            externalUrlCell.appendChild(externalUrlLink);
+            row.appendChild(externalUrlCell);
+
+            tablaBody.appendChild(row);
+        });
+
+        // Mostrar el contenedor de la tabla
+        document.getElementById('tabla-container').style.display = 'block';
+
+        // Deshabilitar el botón de solicitar y habilitar el de comentar
+        document.getElementById('btn-solicitar').disabled = true;
+        document.getElementById('btn-comentar').disabled = true;
+
+        // Actualizar estado de los botones de paginación
+        actualizarBotonesPaginacion(data.length);
+    }
+
+    function deshabilitarOtrosCheckboxes(checkbox) {
+        const checkboxes = document.querySelectorAll('#tabla-body input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            if (cb !== checkbox && checkbox.checked) {
+                cb.disabled = true;
+            } else {
+                cb.disabled = false;
+            }
+        });
+    }
+
+    function actualizarBotonesPaginacion(totalResults) {
+        const btnAnterior = document.getElementById('btn-anterior');
+        const btnSiguiente = document.getElementById('btn-siguiente');
+
+        // Habilitar o deshabilitar el botón de página anterior
+        btnAnterior.disabled = currentPage === 1;
+
+        // Habilitar o deshabilitar el botón de página siguiente
+        btnSiguiente.disabled = currentPage * resultsPerPage >= totalResults;
+    }
+
+    function paginaAnterior() {
+        currentPage--;
+        solicitarDatos();
+    }
+
+    function paginaSiguiente() {
+        currentPage++;
+        solicitarDatos();
+    }
+
+    function comentar() {
+        // Obtener el ID del resultado seleccionado
+        const checkboxes = document.querySelectorAll('#tabla-body input[type="checkbox"]');
+        let selectedId = null;
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                selectedId = cb.parentElement.parentElement.children[1].textContent; // ID está en la segunda columna
+            }
+        });
+
+        // Si se seleccionó un resultado, hacer la solicitud GET para obtener los comentarios
+        if (selectedId) {
+            fetch(`/api/list?feature_id=${selectedId}`, { // Cambiar a la ruta del controlador ListController
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('La respuesta de la solicitud no fue exitosa');
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  console.log('Comentarios:', data);
+                  mostrarComentarios(data);
+              })
+              .catch(error => console.error('Error:', error));
+        } else {
+            // Ocultar el contenedor de comentarios si no se seleccionó ningún checkbox
+            document.getElementById('comentarios-container').style.display = 'none';
+        }
+    }
+
+    function mostrarComentarios(comentarios) {
+        const comentariosContainer = document.getElementById('comentarios-container');
+        const comentariosDiv = document.getElementById('comentarios');
+        comentariosDiv.innerHTML = ''; // Limpiar comentarios anteriores
+
+        // Mostrar cada comentario en el contenedor
+        comentarios.forEach(comentario => {
+            const comentarioElement = document.createElement('div');
+            comentarioElement.textContent = `${comentario.body} - ${comentario.created_at}`; // Ejemplo: "Comentario - 2024-04-18"
+            comentariosDiv.appendChild(comentarioElement);
+        });
+
+        // Mostrar el contenedor de comentarios
+        comentariosContainer.style.display = 'block';
+    }
+
+    function actualizarEstadoBotonComentar() {
+        const checkboxes = document.querySelectorAll('#tabla-body input[type="checkbox"]');
+        let enableComentar = false;
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                enableComentar = true;
+            }
+        });
+
+        // Habilitar o deshabilitar el botón de comentar según el estado de los checkboxes
+        document.getElementById('btn-comentar').disabled = !enableComentar;
+        if (!enableComentar){
+            document.getElementById('comentarios-container').style.display = 'none';
+        }
+    }
+
+    function enviarComentario() {
+        const inputComentario = document.getElementById('comentario-input');
+        const comentario = inputComentario.value.trim();
+
+        if (comentario) {
+            const checkboxes = document.querySelectorAll('#tabla-body input[type="checkbox"]');
+            let selectedId = null;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedId = cb.parentElement.parentElement.children[1].textContent; // ID está en la segunda columna
+                }
+            });
+
+            if (selectedId) {
+                fetch(`/api/features/${selectedId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ comment: { body: comentario } })
+                })
+                  .then(response => {
+                      if (!response.ok) {
+                          throw new Error('La respuesta de la solicitud no fue exitosa');
+                      }
+                      return response.json();
+                  })
+                  .then(data => {
+                      console.log('Comentario enviado:', data);
+                      inputComentario.value = ''; // Limpiar el input después de enviar el comentario
+                      solicitarDatos(); // Volver a solicitar los datos para actualizar la lista de comentarios
+                      document.getElementById('comentarios-container').style.display = 'none';
+                  })
+                  .catch(error => console.error('Error:', error));
+            }
+        }
+    }
+</script>
+
 </body>
 </html>

@@ -8,11 +8,11 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root 'static#home'
 
-  # root "posts#index"
   namespace :api do
     resources :features, only: [:index]
     resources :features, only: [] do
       resources :comments, only: [:create]
     end
+    resources :list, only: [:index]  # Agregar esta línea para el nuevo controlador ListController
   end
 end
