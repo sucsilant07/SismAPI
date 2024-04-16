@@ -1,24 +1,13 @@
-# README
+# Proyecto de Consulta de Datos Sismológicos
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Este proyecto es una aplicación web para consultar datos sismológicos. Utiliza una API para obtener datos de eventos sísmicos y permite visualizarlos en forma de tabla. También ofrece la posibilidad de agregar comentarios a los eventos seleccionados.
 
-Things you may want to cover:
+## Descripción
 
-* Ruby version
+El objetivo de este proyecto es proporcionar una herramienta para visualizar datos sísmicos de manera clara y accesible. La aplicación permite al usuario explorar eventos sísmicos recientes, ver detalles como la magnitud, el lugar y la fecha, y agregar comentarios para discutir los eventos.
 
-* System dependencies
+## Cómo usar
 
-* Configuration
+Para utilizar la aplicación, simplemente presiona el botón "Solicitar" para cargar los datos sísmicos. Luego, puedes hacer clic en los eventos de la tabla para ver más detalles y agregar comentarios si lo deseas.
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Puedes encontrar el código fuente de este proyecto en [mi repositorio de GitHub](https://github.com/sucsilant07/SismAPI) y una vista previa del proyecto [aqui](sismapi.github.io).
