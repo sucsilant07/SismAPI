@@ -8,6 +8,17 @@ El objetivo de este proyecto es proporcionar una herramienta para visualizar dat
 
 ## Cómo usar
 
-Para utilizar la aplicación, simplemente presiona el botón "Solicitar" para cargar los datos sísmicos. Luego, puedes hacer clic en los eventos de la tabla para ver más detalles y agregar comentarios si lo deseas.
+Para probar este proyecto, sigue estos pasos:
 
-Puedes encontrar el código fuente de este proyecto en [mi repositorio de GitHub](https://github.com/sucsilant07/SismAPI) y una vista previa del proyecto [aqui](sismapi.github.io).
+1. Clona este repositorio en tu máquina local usando el siguiente comando: "git clone https://github.com/sucsilant07/SismAPI.git"
+2. Navega hasta el directorio del proyecto: "cd SismAPI"
+3. Ejecuta el servidor de Rails con el siguiente comando: "rails server"
+4. Abre tu navegador web y ve a la siguiente dirección: "http://localhost:3000"
+5. Haz clic en el botón "Solicitar" para cargar los datos sísmicos desde la API.
+6. Una vez que se carguen los datos, podrás ver una tabla con los eventos sísmicos. Puedes hacer clic en cada evento para agregar comentarios si lo deseas.
+
+## Requisitos previos
+
+- Ruby instalado en tu sistema.
+- Conexión a Internet para cargar los datos desde la API.
+- Navegador web compatible con HTML5 y JavaScript.
